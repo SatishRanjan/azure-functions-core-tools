@@ -34,13 +34,8 @@ else {
     Set-Location ".\build"
 }
 
-if ($env:APPVEYOR_REPO_BRANCH -eq "v3.x") {
-    Invoke-Expression -Command  "dotnet run --sign"
-    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
-}
-else {
-    Invoke-Expression -Command  "dotnet run"
-    if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+Invoke-Expression -Command  "dotnet run"
+if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
 }
 
 if ($MsiGenBranches -Contains $env:APPVEYOR_REPO_BRANCH -or $CommitMessage -Contains "[Build MSI]") {
@@ -92,4 +87,3 @@ if ($MsiGenBranches -Contains $env:APPVEYOR_REPO_BRANCH -or $CommitMessage -Cont
         Set-Location $baseDir
         Get-ChildItem -Path $targetDir -Recurse | Remove-Item -Force -Recurse -ea SilentlyContinue
     }
-}
