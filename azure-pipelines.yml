@@ -48,7 +48,7 @@ steps:
       $accessToken = (az account get-access-token --query "accessToken" | % { $_.Trim('"') })
       echo "##vso[task.setvariable variable=azure_management_access_token]$accessToken"
 - pwsh: |
-    .\build.ps1 -MsiGenBranches @("v3.x") -CommitMessage '$(Build.SourceVersionMessage)'
+    .\build.ps1
   env:
     AzureBlobSigningConnectionString: $(AzureBlobSigningConnectionString)
     BuildArtifactsStorage: $(BuildArtifactsStorage)
@@ -140,6 +140,14 @@ steps:
     arguments: 'TestSignedArtifacts --signTest'
   displayName: 'Verify signed binaries'
   condition: and(succeeded(),or (eq(variables['Build.SourceBranch'], 'refs/heads/nasoni/signv3'), eq(variables['Build.SourceBranch'], 'refs/heads/release/3.0')))
+- pwsh: |
+    .\generateMsiFiles.ps1 -MsiGenBranches @("v3.x") -CommitMessage '$(Build.SourceVersionMessage)'
+  env:
+    AzureBlobSigningConnectionString: $(AzureBlobSigningConnectionString)
+    BuildArtifactsStorage: $(BuildArtifactsStorage)
+    DURABLE_STORAGE_CONNECTION: $(DURABLE_STORAGE_CONNECTION)
+    TELEMETRY_INSTRUMENTATION_KEY: $(TELEMETRY_INSTRUMENTATION_KEY)
+  displayName: 'Generate MSI files'
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'VSTest'
