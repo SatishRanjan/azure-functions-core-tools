@@ -144,7 +144,7 @@ steps:
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(Build.Repository.LocalPath)\artifacts'
-    Contents: '*.zip'
+    Contents: 'Azure.Functions.Cli.*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     CleanTargetFolder: true
 - task: PublishBuildArtifacts@1
