@@ -6,6 +6,7 @@ function GenerateSha([string]$filePath,[string]$artifactsPath, [string]$shaFileN
    $sha = (Get-FileHash $filePath).Hash.ToLower()
    $shaPath = Join-Path $artifactsPath "$shaFileName.sha"
    Out-File -InputObject $sha -Encoding ascii -FilePath $shaPath
+   LogSuccess "Generating hash for $filePath"
 }
 
 function Unzip([string]$zipfilePath, [string]$outputpath) {
@@ -52,7 +53,8 @@ try
 
     if (Test-Path $tempDirectoryPath)
     {
-        Remove-Item $tempDirectoryPath -Force -Recurse
+        $removed = Remove-Item $tempDirectoryPath -Force -Recurse
+        LogSuccess "Removed $tempDirectoryPath"
     }
 
     # Runtimes with signed binaries
@@ -72,6 +74,8 @@ try
 
                 $targetDirectory = Join-Path $tempDirectoryPath $fileName
                 $dir = New-Item $targetDirectory -ItemType Directory
+                LogSuccess "created $targetDirectory"
+
                 $targetDirectory = Resolve-Path $targetDirectory 
                 $filePath = Resolve-Path $file.FullName
                 Unzip $filePath $targetDirectory       
@@ -85,6 +89,7 @@ try
 
     # Store file count before replacing the binaries
     $fileCountBefore = (Get-ChildItem $tempDirectoryPath -Recurse | Measure-Object).Count
+    LogSuccess "file count $fileCountBefore"
 
     # copy authenticode signed binaries into extracted directories
     $authenticodeDirectory = "..\artifacts\ToSign\Authenticode\"
@@ -93,7 +98,8 @@ try
     foreach($directory in $authenticodeDirectories)
     {
         $sourcePath = $directory.FullName
-        Copy-Item -Path $sourcePath -Destination $tempDirectoryPath -Recurse -Force
+        $copyti = Copy-Item -Path $sourcePath -Destination $tempDirectoryPath -Recurse -Force
+        LogSuccess "Copying $sourcePath to $tempDirectoryPath"
     }
 
     # copy thirdparty signed directory into extracted directories
@@ -104,9 +110,11 @@ try
     {
         $sourcePath = $directory.FullName
         Copy-Item -Path $sourcePath -Destination $tempDirectoryPath -Recurse -Force
+        LogSuccess "Copying $sourcePath to $tempDirectoryPath"
     }
 
     $fileCountAfter = (Get-ChildItem $tempDirectoryPath -Recurse | Measure-Object).Count
+    LogSuccess "File count after $fileCountAfter"
 
     if ($fileCountBefore -ne $fileCountAfter)
     {
@@ -129,6 +137,7 @@ try
     {
     
         GenerateSha $zipFile.FullName $artifactsPath $zipFile.Name
+        LogSuccess 
     }
 }
 catch {
